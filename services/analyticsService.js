@@ -33,6 +33,8 @@ function isoWeekYear(date) {
 
 /**
  * Weekly completed task stats
+ * @param {string} userId
+ * @param {number} weeksCount
  */
 async function getWeeklyCompletedTasks(userId, weeksCount = 8) {
   const objectId = toObjectId(userId);
@@ -84,6 +86,8 @@ async function getWeeklyCompletedTasks(userId, weeksCount = 8) {
 
 /**
  * Monthly completed task stats
+ * @param {string} userId
+ * @param {number} monthsCount
  */
 async function getMonthlyCompletedTasks(userId, monthsCount = 6) {
   const objectId = toObjectId(userId);
@@ -131,6 +135,8 @@ async function getMonthlyCompletedTasks(userId, monthsCount = 6) {
 
 /**
  * Daily completed task stats
+ * @param {string} userId
+ * @param {number} daysCount
  */
 async function getDailyCompletedTasks(userId, daysCount = 7) {
   const objectId = toObjectId(userId);
@@ -181,6 +187,7 @@ async function getDailyCompletedTasks(userId, daysCount = 7) {
 
 /**
  * Get productivity streak data
+ * @param {string} userId
  */
 async function getStreakData(userId) {
   const objectId = toObjectId(userId);
@@ -207,7 +214,7 @@ async function getStreakData(userId) {
   }));
 
   const today = new Date();
-  today.setHours(0,0,0,0);
+  today.setHours(0, 0, 0, 0);
 
   let currentStreak = 0;
   let longestStreak = 0;
@@ -238,6 +245,8 @@ async function getStreakData(userId) {
 
 /**
  * Get productivity monthly trends
+ * @param {string} userId
+ * @param {number} monthsCount
  */
 async function getMonthlyTrends(userId, monthsCount = 6) {
   const objectId = toObjectId(userId);
@@ -285,6 +294,9 @@ async function getMonthlyTrends(userId, monthsCount = 6) {
 
 /**
  * Get category breakdown data
+ * @param {string} userId
+ * @param {string} dateFrom - ISO date string
+ * @param {string} dateTo - ISO date string
  */
 async function getCategoryStats(userId, dateFrom, dateTo) {
   const objectId = toObjectId(userId);

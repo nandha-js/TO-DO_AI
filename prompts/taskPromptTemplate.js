@@ -1,49 +1,49 @@
-/**
- * Constructs a well-structured prompt for AI to parse natural language task input
- * into a strict JSON format for the productivity app.
- *
- * @param {string} userInput - User's natural language task input
- * @returns {string} - Formatted AI system prompt string
- */
 function getTaskParsingPrompt(userInput) {
   const cleanedInput = (userInput || '').trim();
 
   return `
-You are an AI task parser for a productivity app. 
-Extract exactly one primary actionable task from the given natural language input 
-and return it as a STRICT JSON object following the required format.
+You are an expert AI assistant specialized in converting free-form natural language into a precise, structured JSON task object for a productivity application. Carefully follow these detailed instructions:
 
-### Rules:
-1. Output ONLY a valid JSON object — no extra text, no explanations, no markdown.
-2. JSON keys (in this exact order): description, dueDate, priority, category.
-3. "description": 
-   - Short (max ~100 chars), human-readable summary of the task.
-   - Remove filler words like "please", "could you", etc.
-4. "dueDate": 
-   - ISO 8601 UTC format (YYYY-MM-DDTHH:mm:ssZ), e.g., "2025-08-10T14:30:00Z".
-   - If no date/time is explicitly given or inferred, use null.
-   - Convert relative dates ("tomorrow", "next Monday", "in 3 days") to exact ISO dates.
-5. "priority":
-   - One of ["low", "medium", "high"].
-   - Infer from urgency words (e.g., "urgent", "ASAP" → high; "whenever" → low; otherwise medium).
-6. "category":
-   - Choose from ["shopping", "work", "personal", "health", "finance", "general"].
-   - Detect from task content. Default to "general".
-7. No trailing commas, no comments.
+1. Extract exactly ONE actionable task from the user input. Ignore all extraneous information.
 
-### User Input:
-"${cleanedInput}"
+2. Return ONLY a VALID JSON object with EXACT keys in the order below:
+  - "description" (string): A clear, concise summary of the task (max 100 characters). Remove filler words like "please", "could you".
+  - "dueDate" (string|null): An ISO 8601 UTC datetime string (e.g. "2025-08-20T15:30:00Z"). Convert relative dates/times (e.g. "tomorrow", "next Monday at 5pm") to exact UTC timestamps. Use null if no due date is present.
+  - "priority" (string): One of ["low", "medium", "high", "critical"]. Infer priority from urgency words:
+      - "critical": urgent, ASAP, immediately, emergency
+      - "high": today, soon, important
+      - "medium": normal/default priority
+      - "low": whenever, no rush, later
+  - "category" (string): One of ["shopping", "work", "personal", "health", "finance", "general"]. Choose based on context or keywords. Default to "general".
+  - "keywords" (array of strings): 3 to 7 unique, lowercase keywords extracted from the description that best summarize the task. Remove common stopwords.
+  - "estimatedDurationMinutes" (integer|null): Estimate how long the task might take in minutes, based on keywords or typical durations. Use null if uncertain.
+  - "location" (string|null): If a location/place is mentioned, extract it as a string. Otherwise, null.
+  - "confidenceScore" (float): Your confidence in this extraction, between 0.0 and 1.0, rounded to two decimals.
 
-### Example Output:
+3. JSON output rules:
+  - Output ONLY the JSON object, no extra text, no markdown, no comments.
+  - Ensure perfect JSON formatting, no trailing commas.
+  - Use null for any field you cannot determine confidently.
+  
+4. If the input is ambiguous or does not contain a valid task, return a JSON object with all fields set to null or empty (empty array for keywords).
+
+5. Example output:
+
 {
-  "description": "Submit project report",
-  "dueDate": "2025-08-12T17:00:00Z",
-  "priority": "high",
-  "category": "work"
-}
-`;
+  "description": "Buy groceries: milk, bread, and eggs",
+  "dueDate": "2025-08-15T12:00:00Z",
+  "priority": "medium",
+  "category": "shopping",
+  "keywords": ["buy", "groceries", "milk", "bread", "eggs"],
+  "estimatedDurationMinutes": 30,
+  "location": "supermarket",
+  "confidenceScore": 0.85
 }
 
-module.exports = {
-  getTaskParsingPrompt,
-};
+User input:
+"${cleanedInput}"
+`.trim();
+}
+
+module.exports = { getTaskParsingPrompt };
+

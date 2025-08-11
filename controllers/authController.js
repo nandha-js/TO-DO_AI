@@ -1,11 +1,10 @@
-// controllers/authController.js
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
 
-// Generate JWT token
+// Generate JWT token with 7-day expiry
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: '7d',
@@ -35,16 +34,18 @@ const signup = asyncHandler(async (req, res) => {
     throw new Error('Password must be at least 6 characters');
   }
 
+  // Check if user exists
   const userExists = await User.findOne({ email });
   if (userExists) {
     res.status(400);
     throw new Error('User already exists');
   }
 
-  // Hash password
+  // Hash password securely
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
 
+  // Create new user document
   const user = await User.create({
     email,
     passwordHash,
@@ -73,6 +74,7 @@ const login = asyncHandler(async (req, res) => {
     throw new Error('Please provide email and password');
   }
 
+  // Select passwordHash explicitly for comparison
   const user = await User.findOne({ email }).select('+passwordHash');
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
     res.status(401);
@@ -95,6 +97,7 @@ const login = asyncHandler(async (req, res) => {
 // @route POST /api/auth/logout
 // @access Public
 const logout = asyncHandler(async (req, res) => {
+  // For JWT, logout is handled client-side by discarding token
   res.json({ success: true, message: 'Logged out successfully' });
 });
 
@@ -110,16 +113,17 @@ const forgotPassword = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
+  // Generate and hash reset token
   const resetToken = crypto.randomBytes(20).toString('hex');
   user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-  user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+  user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // Expires in 10 mins
   await user.save();
 
-  // In production, send via email instead
+  // In production, send resetToken via email securely
   res.json({
     success: true,
     message: 'Password reset token generated',
-    resetToken,
+    resetToken, // WARNING: Exposing token here only for dev/testing purposes
   });
 });
 
@@ -129,6 +133,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
 const resetPassword = asyncHandler(async (req, res) => {
   const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
 
+  // Find user by token and check token expiry
   const user = await User.findOne({
     resetPasswordToken: hashedToken,
     resetPasswordExpire: { $gt: Date.now() },
@@ -139,6 +144,7 @@ const resetPassword = asyncHandler(async (req, res) => {
     throw new Error('Invalid or expired token');
   }
 
+  // Hash new password and update user
   const salt = await bcrypt.genSalt(10);
   user.passwordHash = await bcrypt.hash(req.body.password, salt);
   user.resetPasswordToken = undefined;

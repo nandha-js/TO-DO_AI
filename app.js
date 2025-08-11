@@ -14,7 +14,7 @@ const app = express();
 // Security headers
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
 }));
 
 // Request logging
@@ -33,16 +33,11 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
 }));
 
 // Parse JSON with increased limit
 app.use(express.json({ limit: '1mb' }));
-
-// ✅ Root route for Render health/welcome
-app.get('/', (req, res) => {
-  res.send('✅ AI To-Do Backend is running!');
-});
 
 // API routes
 app.use('/api/auth', authRoutes);
@@ -56,7 +51,7 @@ app.get('/api/health', (req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     env: process.env.NODE_ENV,
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 

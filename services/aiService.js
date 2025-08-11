@@ -1,5 +1,6 @@
 const axios = require('axios');
-const { getTaskParsingPrompt } = require('./getTaskParsingPrompt'); // adjust path as needed
+const { getTaskParsingPrompt } = require('../prompts/taskPromptTemplate');
+
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
@@ -30,7 +31,7 @@ async function parseTask(rawInput) {
       },
       {
         headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
       }

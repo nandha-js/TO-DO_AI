@@ -4,7 +4,9 @@ const analyticsService = require('../services/analyticsService');
 // ✅ Utility to safely get user ID from JWT middleware
 const getUserIdFromReq = (req) => req.user?.userId || req.user?._id || null;
 
-// 📊 Get task completion statistics
+/**
+ * 📊 Get task completion statistics with granularity (day/week/month)
+ */
 exports.getTaskCompletionStats = async (req, res) => {
   try {
     const userId = getUserIdFromReq(req);
@@ -12,22 +14,19 @@ exports.getTaskCompletionStats = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const weeks = parseInt(req.query.weeks) || 8;
+    const weeks = parseInt(req.query.weeks, 10) || 8;
     const granularity = ['day', 'week', 'month'].includes(req.query.granularity)
       ? req.query.granularity
       : 'week';
 
     let stats;
-
     if (granularity === 'day') {
-      // weeks is number of weeks, convert to days for daily stats
       stats = await analyticsService.getDailyCompletedTasks(userId, weeks * 7);
     } else if (granularity === 'week') {
       stats = await analyticsService.getWeeklyCompletedTasks(userId, weeks);
     } else if (granularity === 'month') {
       stats = await analyticsService.getMonthlyCompletedTasks(userId, weeks);
     } else {
-      // fallback to weekly
       stats = await analyticsService.getWeeklyCompletedTasks(userId, weeks);
     }
 
@@ -51,7 +50,9 @@ exports.getTaskCompletionStats = async (req, res) => {
   }
 };
 
-// 📂 Get category breakdown
+/**
+ * 📂 Get task category breakdown within a date range
+ */
 exports.getCategoryBreakdown = async (req, res) => {
   try {
     const userId = getUserIdFromReq(req);
@@ -86,7 +87,9 @@ exports.getCategoryBreakdown = async (req, res) => {
   }
 };
 
-// 🔥 Get productivity streaks
+/**
+ * 🔥 Get user's productivity streaks
+ */
 exports.getProductivityStreaks = async (req, res) => {
   try {
     const userId = getUserIdFromReq(req);
@@ -108,7 +111,9 @@ exports.getProductivityStreaks = async (req, res) => {
   }
 };
 
-// 📈 Get productivity trends
+/**
+ * 📈 Get productivity monthly trends
+ */
 exports.getProductivityTrends = async (req, res) => {
   try {
     const userId = getUserIdFromReq(req);
@@ -116,19 +121,23 @@ exports.getProductivityTrends = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const months = parseInt(req.query.months) || 6;
+    const months = parseInt(req.query.months, 10) || 6;
     const trends = await analyticsService.getMonthlyTrends(userId, months);
 
     res.json({
       success: true,
       monthsAnalyzed: months,
       insights: {
-        trendDirection: trends.length > 1
-          ? (trends[trends.length - 1].count > trends[0].count ? 'upward' : 'downward')
-          : 'stable',
-        bestMonth: trends.length
-          ? trends.reduce((max, s) => (s.count > max.count ? s : max), trends[0])
-          : null,
+        trendDirection:
+          trends.length > 1
+            ? trends[trends.length - 1].count > trends[0].count
+              ? 'upward'
+              : 'downward'
+            : 'stable',
+        bestMonth:
+          trends.length > 0
+            ? trends.reduce((max, s) => (s.count > max.count ? s : max), trends[0])
+            : null,
       },
       data: trends,
     });

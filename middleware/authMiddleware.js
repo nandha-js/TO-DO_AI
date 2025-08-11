@@ -1,4 +1,3 @@
-// middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
@@ -9,24 +8,24 @@ const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
 
-      // Verify token
+      // Verify token using JWT_SECRET
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // ✅ Use `decoded.userId` (consistent with generateToken in authController)
+      // Attach user to request, exclude passwordHash
       req.user = await User.findById(decoded.userId).select('-passwordHash');
 
       if (!req.user) {
         return res.status(401).json({ success: false, message: 'User not found' });
       }
 
-      return next();
+      next();
     } catch (error) {
       return res.status(401).json({ success: false, message: 'Not authorized, token invalid' });
     }
+  } else {
+    // No token provided in headers
+    return res.status(401).json({ success: false, message: 'Not authorized, no token' });
   }
-
-  // No token found
-  return res.status(401).json({ success: false, message: 'Not authorized, no token' });
 };
 
 module.exports = { protect };

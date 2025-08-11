@@ -1,4 +1,3 @@
-// server.js
 require('dotenv').config();
 const mongoose = require('mongoose');
 const app = require('./app');
@@ -16,11 +15,9 @@ let shuttingDown = false;
 
 async function startServer() {
   try {
-    // Connect to MongoDB
     await mongoose.connect(MONGO_URI);
     console.log('✅ Connected to MongoDB');
 
-    // Start HTTP server
     server = app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
     });
@@ -30,7 +27,6 @@ async function startServer() {
   }
 }
 
-// Graceful shutdown handler
 async function shutdown(signal) {
   if (shuttingDown) return;
   shuttingDown = true;
@@ -38,14 +34,12 @@ async function shutdown(signal) {
   console.log(`\n🛑 ${signal} received. Shutting down gracefully...`);
 
   try {
-    // Close MongoDB connection first
     await mongoose.connection.close();
     console.log('✅ MongoDB connection closed.');
   } catch (err) {
     console.error('❌ Error closing MongoDB connection:', err.message);
   }
 
-  // Stop HTTP server
   if (server) {
     server.close(() => {
       console.log('✅ HTTP server closed.');
@@ -56,12 +50,10 @@ async function shutdown(signal) {
   }
 }
 
-// Listen for termination signals
 ['SIGINT', 'SIGTERM'].forEach(sig => {
   process.on(sig, () => shutdown(sig));
 });
 
-// Handle unexpected errors
 process.on('unhandledRejection', (err) => {
   console.error('❌ Unhandled Promise Rejection:', err.stack || err.message);
   shutdown('unhandledRejection');
@@ -72,5 +64,4 @@ process.on('uncaughtException', (err) => {
   shutdown('uncaughtException');
 });
 
-// Start the server
 startServer();
