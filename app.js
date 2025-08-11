@@ -55,6 +55,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Root route to avoid 404
+app.get('/', (req, res) => {
+  res.send('API is running');
+});
+
 // Handle unknown routes
 app.all('*', (req, res, next) => {
   const err = new Error(`Route not found: ${req.originalUrl}`);
