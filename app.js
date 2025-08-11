@@ -39,6 +39,11 @@ app.use(cors({
 // Parse JSON with increased limit
 app.use(express.json({ limit: '1mb' }));
 
+// ✅ Root route for Render health/welcome
+app.get('/', (req, res) => {
+  res.send('✅ AI To-Do Backend is running!');
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
