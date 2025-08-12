@@ -20,10 +20,11 @@ app.use(helmet({
 // Request logging
 app.use(morgan('dev'));
 
-// CORS setup (support multiple URLs)
-const allowedOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || 'http://localhost:5173')
-  .split(',')
-  .map(o => o.trim());
+// CORS setup (Netlify + local dev)
+const allowedOrigins = [
+  'https://to-doai.netlify.app', // Netlify frontend
+  'http://localhost:5173'        // Local Vite dev
+];
 
 app.use(cors({
   origin: (origin, callback) => {
